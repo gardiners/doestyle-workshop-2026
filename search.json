@@ -1,0 +1,30 @@
+[
+  {
+    "objectID": "about.html",
+    "href": "about.html",
+    "title": "About",
+    "section": "",
+    "text": "About this site"
+  },
+  {
+    "objectID": "index.html",
+    "href": "index.html",
+    "title": "Automate on-brand, accessible data visualisations for your reporting using R and doestyle",
+    "section": "",
+    "text": "This workshop has been developed and delivered on Dharug country.\n\n\nA picture tells a thousand words - but it can be time-consuming to craft data visualisations that meet our accessibility obligations while remaining on-brand and visually appealing. This workshop for R users will guide participants in the construction of several data visualisations using doestyle, the department’s in-house R package for plot styling. We will explore workflows to improve the ease and speed at which data visualisations can be built into evaluation reporting, and how to tweak these workflow defaults to improve visual appeal.\n\n\n\n\nUnderstand accessibility requirements for colour and contrast, to ensure that your data visualisations are accessible to the broadest section of our community\nUse R, ggplot2 and doestyle to apply styling and theming to data visualisations\nDevelop workflows to make building multiple plots for reporting as quick and simple as possible"
+  },
+  {
+    "objectID": "index.html#preamble",
+    "href": "index.html#preamble",
+    "title": "Automate on-brand, accessible data visualisations for your reporting using R and doestyle",
+    "section": "",
+    "text": "This workshop has been developed and delivered on Dharug country.\n\n\nA picture tells a thousand words - but it can be time-consuming to craft data visualisations that meet our accessibility obligations while remaining on-brand and visually appealing. This workshop for R users will guide participants in the construction of several data visualisations using doestyle, the department’s in-house R package for plot styling. We will explore workflows to improve the ease and speed at which data visualisations can be built into evaluation reporting, and how to tweak these workflow defaults to improve visual appeal.\n\n\n\n\nUnderstand accessibility requirements for colour and contrast, to ensure that your data visualisations are accessible to the broadest section of our community\nUse R, ggplot2 and doestyle to apply styling and theming to data visualisations\nDevelop workflows to make building multiple plots for reporting as quick and simple as possible"
+  },
+  {
+    "objectID": "index.html#accessibility",
+    "href": "index.html#accessibility",
+    "title": "Automate on-brand, accessible data visualisations for your reporting using R and doestyle",
+    "section": "Accessibility",
+    "text": "Accessibility\n\nAccessibility improves the experience for everyone, not just people with a disability\nStarting your visualisations with accessibility in mind will help\n\n\nThe standard: WCAG AA\n\nhttps://www.w3.org/TR/WCAG22/\nGuideline 1.4 Distinguishable\n\n\n\nColour\n\nSuccess Criterion 1.4.1 Use of Color\nColor is not used as the only visual means of conveying information…\n\n\n\nContrast\n\nSuccess Criterion 1.4.3 Contrast (Minimum)\nThe visual presentation of text and images of text has a contrast ratio of at least 4.5:1, except for the following: Large Text Large-scale text and images of large-scale text have a contrast ratio of at least 3:1\n\n\nhttps://www.w3.org/TR/WCAG22/#contrast-minimum\nQuick reference with examples\n\n\n\nDepartment of Education guidance\n\nhttps://brand.education.nsw.gov.au/content/edam/en/brand-guideline.html"
+  }
+]
