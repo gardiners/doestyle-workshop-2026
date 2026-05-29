@@ -26,5 +26,12 @@
     "title": "Automate on-brand, accessible data visualisations for your reporting using R and doestyle",
     "section": "Accessibility",
     "text": "Accessibility\n\nAccessibility improves the experience for everyone, not just people with a disability\nStarting your visualisations with accessibility in mind will help\n\n\nThe standard: WCAG AA\n\nhttps://www.w3.org/TR/WCAG22/\nGuideline 1.4 Distinguishable\n\n\n\nColour\n\nSuccess Criterion 1.4.1 Use of Color\nColor is not used as the only visual means of conveying information…\n\n\n\nContrast\n\nSuccess Criterion 1.4.3 Contrast (Minimum)\nThe visual presentation of text and images of text has a contrast ratio of at least 4.5:1, except for the following: Large Text Large-scale text and images of large-scale text have a contrast ratio of at least 3:1\n\n\nhttps://www.w3.org/TR/WCAG22/#contrast-minimum\nQuick reference with examples\n\n\n\nDepartment of Education guidance\n\nhttps://brand.education.nsw.gov.au/content/edam/en/brand-guideline.html"
+  },
+  {
+    "objectID": "index.html#test-that-r-wasm-works-as-expected",
+    "href": "index.html#test-that-r-wasm-works-as-expected",
+    "title": "Automate on-brand, accessible data visualisations for your reporting using R and doestyle",
+    "section": "Test that r-wasm works as expected:",
+    "text": "Test that r-wasm works as expected:"
   }
 ]
