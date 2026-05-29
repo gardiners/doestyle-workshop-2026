@@ -2,8 +2,16 @@
 title: "Automate on-brand, accessible data visualisations for your reporting using R and `doestyle`"
 author: "Sam Gardiner (and you!)"
 date: "4 June 2026"
-format: html
+format: live-html
+engine: knitr
+webr:
+  packages:
+    - doestyle
+  repos:
+    - https://nsw-education.r-universe.dev/
 ---
+
+{{< include ./_extensions/r-wasm/live/_knitr.qmd >}}
 
 ## Preamble
 
@@ -50,3 +58,18 @@ A picture tells a thousand words - but it can be time-consuming to craft data vi
 ### Department of Education guidance
 
 - https://brand.education.nsw.gov.au/content/edam/en/brand-guideline.html
+
+## Test that r-wasm works as expected:
+
+
+```{webr}
+library(doestyle)
+library(dplyr)
+library(ggplot2)
+
+ggplot(public_schools,
+       aes(x = latest_year_enrolment_FTE, y = ICSEA_value)) +
+  geom_point() +
+  geom_smooth()
+```
+
