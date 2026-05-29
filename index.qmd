@@ -1,0 +1,52 @@
+---
+title: "Automate on-brand, accessible data visualisations for your reporting using R and `doestyle`"
+author: "Sam Gardiner (and you!)"
+date: "4 June 2026"
+format: html
+---
+
+## Preamble
+
+This workshop has been developed and delivered on [Dharug](https://www.cityofparramatta.nsw.gov.au/community/first-nations/dharug-and-first-nations-community) country.
+
+### Abstract
+
+A picture tells a thousand words - but it can be time-consuming to craft data visualisations that meet our accessibility obligations while remaining on-brand and visually appealing. This workshop for R users will guide participants in the construction of several data visualisations using `doestyle`, the department’s in-house R package for plot styling. We will explore workflows to improve the ease and speed at which data visualisations can be built into evaluation reporting, and how to tweak these workflow defaults to improve visual appeal.
+
+### Learning intentions
+
+- Understand accessibility requirements for colour and contrast, to ensure that your data visualisations are accessible to the broadest section of our community
+- Use R, `ggplot2` and `doestyle` to apply styling and theming to data visualisations
+- Develop workflows to make building multiple plots for reporting as quick and simple as possible
+
+## Accessibility
+
+- Accessibility improves the experience for everyone, not just people with a disability
+- Starting your visualisations with accessibility in mind will help
+
+### The standard: WCAG AA
+
+- https://www.w3.org/TR/WCAG22/
+- [Guideline 1.4 Distinguishable](https://www.w3.org/TR/WCAG22/#distinguishable)
+
+### Colour
+
+> Success Criterion 1.4.1 Use of Color
+>
+> Color is not used as the only visual means of conveying information...
+
+### Contrast
+
+> Success Criterion 1.4.3 Contrast (Minimum)
+> 
+> The visual presentation of text and images of text has a contrast ratio of at least 4.5:1, except for the following:
+> Large Text
+> Large-scale text and images of large-scale text have a contrast ratio of at least 3:1
+
+- https://www.w3.org/TR/WCAG22/#contrast-minimum
+- [Quick reference with examples](https://www.w3.org/WAI/WCAG22/quickref/#contrast-minimum)
+
+
+### Department of Education guidance
+
+- https://brand.education.nsw.gov.au/content/edam/en/brand-guideline.html
