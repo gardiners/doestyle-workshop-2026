@@ -219,6 +219,49 @@ ggplot(preschools,
                                 "Infants School" = "plus")) +
   theme_classic()
 ```
+
+### Exercise: use high-contrast text annotations
+
+Sometimes your audience will ask for data labels or other text annotations. 
+
+```{r}
+lbote_topn <- public_schools |>
+  filter_out(is.na(LBOTE_pct)) |>
+  slice_max(LBOTE_pct, n = 1, by = Operational_directorate, with_ties = FALSE) |>
+  mutate(
+    school_label = paste0(School_name, ": ", LBOTE_pct, "% "),
+    school_label_fct = forcats::fct_reorder(school_label, LBOTE_pct))
+
+ggplot(lbote_topn,
+       aes(x = LBOTE_pct,
+           y = school_label_fct)) +
+  geom_col() +
+  geom_text(aes(label = school_label),
+            colour = "white",
+            hjust = "right",
+            size = 12 / .pt) +
+  scale_x_continuous(labels = \(x) paste0(x, "%")) +
+  theme_minimal() +
+  theme(axis.text.y = element_blank(),
+        axis.ticks.y = element_blank(),
+        panel.grid = element_blank()) +
+  labs(x = "Students with Language Background Other Than English (LBOTE)",
+       y = NULL)
+```
+`doestyle` provides some help with choosing contrasting colours
+
+```{r}
+doestyle::show_colours()
+```
+
+
+
+```{r}
+contrast_ratio(doe_colours("blue-01"), doe_colours("blue-04"))
+```
+
+
+
 ### Department of Education guidance
 
 - https://brand.education.nsw.gov.au/content/edam/en/brand-guideline.html
