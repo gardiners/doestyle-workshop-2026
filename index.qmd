@@ -2,7 +2,7 @@
 title: "Automate on-brand, accessible data visualisations for your reporting using R and `doestyle`"
 author: "Sam Gardiner (and you!)"
 date: "4 June 2026"
-format: live-html
+format: html
 engine: knitr
 webr:
   packages:
@@ -62,7 +62,7 @@ A picture tells a thousand words - but it can be time-consuming to craft data vi
 ## Test that r-wasm works as expected:
 
 
-```{webr}
+```{r}
 library(doestyle)
 library(dplyr)
 library(ggplot2)
