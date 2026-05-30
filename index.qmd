@@ -2,8 +2,15 @@
 title: "Automate on-brand, accessible data visualisations for your reporting using R and `doestyle`"
 author: "Sam Gardiner (and you!)"
 date: "4 June 2026"
-format: html
+format:
+  html:
+    fig-cap-location: margin
+    reference-location: margin
+    citation-location: margin
 engine: knitr
+knitr:
+  opts_chunk: 
+    dev: svglite
 webr:
   packages:
     - doestyle
@@ -13,19 +20,52 @@ webr:
 
 {{< include ./_extensions/r-wasm/live/_knitr.qmd >}}
 
-## Preamble
+# Introduction 
 
 This workshop has been developed and delivered on [Dharug](https://www.cityofparramatta.nsw.gov.au/community/first-nations/dharug-and-first-nations-community) country.
 
-### Abstract
+## Abstract
 
 A picture tells a thousand words - but it can be time-consuming to craft data visualisations that meet our accessibility obligations while remaining on-brand and visually appealing. This workshop for R users will guide participants in the construction of several data visualisations using `doestyle`, the department’s in-house R package for plot styling. We will explore workflows to improve the ease and speed at which data visualisations can be built into evaluation reporting, and how to tweak these workflow defaults to improve visual appeal.
 
-### Learning intentions
+## Learning intentions
 
 - Understand accessibility requirements for colour and contrast, to ensure that your data visualisations are accessible to the broadest section of our community
 - Use R, `ggplot2` and `doestyle` to apply styling and theming to data visualisations
 - Develop workflows to make building multiple plots for reporting as quick and simple as possible
+
+# Getting started
+
+This workshop is designed to be completed in a web browser. It uses [WebR](https://docs.r-wasm.org/webr/latest/) and [Quarto Live](https://r-wasm.github.io/quarto-live/) to run a [WebAssembly](https://webassembly.org/)-powered R session within your browser, with no installation required.
+
+As you loaded this web page, the `doestyle` R package was installed for your use during the workshop. However, if you want to use `doestyle` for your own work in RStudio or Visual Studio Code, you'll need to install it on your computer:
+
+```r
+install.packages(
+  'doestyle',
+  repos = c(
+    'https://nsw-education.r-universe.dev',
+    'https://cloud.r-project.org'
+  )
+)
+```
+
+The `doestyle` package includes a dataset called `public_schools`, which is a snapshot of the [NSW public schools master dataset](https://www.metadata.nsw.gov.au/item/9544/distribution/nsw-public-schools-master-dataset).
+
+Let's check that everything is working by building a quick visualisation with `ggplot2`, `doestyle` and the public schools data. Run the code and have a look at the output.
+
+```{r}
+#| label: fig-intro
+#| fig-cap: Our first figure. Did it work? Is it accessible? Does it tell a story?
+library(doestyle)
+library(ggplot2)
+
+ggplot(public_schools,
+       aes(y = Operational_directorate)) +
+  geom_bar() +
+  theme_doe(base_family = "sans")
+```
+
 
 ## Accessibility
 
@@ -39,37 +79,24 @@ A picture tells a thousand words - but it can be time-consuming to craft data vi
 
 ### Colour
 
-> Success Criterion 1.4.1 Use of Color
+> #### Success Criterion 1.4.1 Use of Color
 >
 > Color is not used as the only visual means of conveying information...
 
+- About 1 in 20 of your visualisation's audience will have some form of colour blindness
+
 ### Contrast
 
-> Success Criterion 1.4.3 Contrast (Minimum)
+> #### Success Criterion 1.4.3 Contrast (Minimum)
 > 
-> The visual presentation of text and images of text has a contrast ratio of at least 4.5:1, except for the following:
+> The visual presentation of **text and images of text** has a contrast ratio of at least 4.5:1, except for the following:
 > Large Text
 > Large-scale text and images of large-scale text have a contrast ratio of at least 3:1
 
 - https://www.w3.org/TR/WCAG22/#contrast-minimum
 - [Quick reference with examples](https://www.w3.org/WAI/WCAG22/quickref/#contrast-minimum)
 
-
 ### Department of Education guidance
 
 - https://brand.education.nsw.gov.au/content/edam/en/brand-guideline.html
-
-## Test that r-wasm works as expected:
-
-
-```{r}
-library(doestyle)
-library(dplyr)
-library(ggplot2)
-
-ggplot(public_schools,
-       aes(x = latest_year_enrolment_FTE, y = ICSEA_value)) +
-  geom_point() +
-  geom_smooth()
-```
 
