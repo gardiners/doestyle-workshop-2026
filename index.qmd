@@ -7,6 +7,7 @@ format:
     fig-cap-location: margin
     reference-location: margin
     citation-location: margin
+bibliography: references.bib
 engine: knitr
 knitr:
   opts_chunk: 
@@ -67,35 +68,157 @@ ggplot(public_schools,
 ```
 
 
-## Accessibility
+# Accessibility
+
+From our very own website [@doeAccessibilityGuidelines2026]:
+
+> Accessibility means providing equal access to information for all our audiences, with special consideration for people with disability.
+> 
+> ...
+>
+> Our approach to accessibility at the NSW Department of Education is about creating content that does not exclude anyone because of their ability, situation or circumstance. Rather, it is an inclusive approach to content that should make it easier for all users to understand, interact with and respond to our websites, apps, communications and materials.
 
 - Accessibility improves the experience for everyone, not just people with a disability
-- Starting your visualisations with accessibility in mind will help
+- Starting your visualisations with accessibility in mind will often help you to design a simpler, more interpretable plot
 
-### The standard: WCAG AA
+## The standard: WCAG 2.2
 
-- https://www.w3.org/TR/WCAG22/
-- [Guideline 1.4 Distinguishable](https://www.w3.org/TR/WCAG22/#distinguishable)
+We aim for level AA conformance with Web Content Accessibility Guidelines 2.2 [@wcag22].
+
+> Web Content Accessibility Guidelines (WCAG) explains how to make web content more accessible to people with disabilities. WCAG covers web sites, applications, and other digital content.
+>
+> There are three levels of conformance:
+>
+> - Level A is the minimum level.
+> - Level AA includes all Level A and AA requirements. Many organizations strive to meet Level AA.
+> - Level AAA includes all Level A, AA, and AAA requirements. 
+
+[@w3cwebaccessibilityinitiativewaiWebContentAccessibility]
+
+
+You can read [the whole guideline](https://www.w3.org/TR/WCAG22/), but for our purpose today, we're most interested in sections of [Guideline 1.4 Distinguishable](https://www.w3.org/TR/WCAG22/#distinguishable):
+
+> Make it easier for users to see and hear content including separating foreground from background.
 
 ### Colour
 
-> #### Success Criterion 1.4.1 Use of Color
+> #### [Success Criterion 1.4.1 Use of Color](https://www.w3.org/TR/WCAG22/#use-of-color)
 >
-> Color is not used as the only visual means of conveying information...
+> Color is not used as the only visual means of conveying information ...
 
-- About 1 in 20 of your visualisation's audience will have some form of colour blindness
+:::{.callout-caution}
+About 1 in 20 of your audience will have some form of colour blindness. If you use colour as the only way of communicating, you risk misinterpretation or even complete failure of your visusalisation.
+:::
 
 ### Contrast
 
-> #### Success Criterion 1.4.3 Contrast (Minimum)
+> #### [Success Criterion 1.4.3 Contrast (Minimum)](https://www.w3.org/TR/WCAG22/#contrast-minimum)
 > 
-> The visual presentation of **text and images of text** has a contrast ratio of at least 4.5:1, except for the following:
-> Large Text
-> Large-scale text and images of large-scale text have a contrast ratio of at least 3:1
+> The visual presentation of text and images of text has a contrast ratio of at least 4.5:1 ...
+> 
+> Large-scale text and images of large-scale text have a contrast ratio of at least 3:1.
 
-- https://www.w3.org/TR/WCAG22/#contrast-minimum
+:::{.aside}
+_Large text_ means 18 points, or 14 points and bold.
+:::
+
 - [Quick reference with examples](https://www.w3.org/WAI/WCAG22/quickref/#contrast-minimum)
 
+## How can we meet the standard?
+
+Use a second aesthetic mapping (an addition to colour) to represent categories. Depending on your plot type and data, there are many workable options:
+
+- Colour + shape
+- Colour + pattern or line type
+- Colour + text annotation
+
+If you have more than about 3 categories, there's a good chance you'll be better off designing a simpler visual:
+
+- Can you move your categories to a labelled axis?
+- Can you use small multiples instead (e.g. `ggplot2::facet_wrap()` or `facet_grid()`)?
+- Would a table be easier to interpret?
+
+### Exercise: getting away from colour alone
+
+For this exercise, we'll look at schools with an attached preschool:
+
+```{r}
+library(dplyr)
+library(ggplot2)
+library(tidyr)
+
+preschools <- public_schools |>
+  filter(Preschool_ind == "Y") |>
+  filter_out(when_any(is.na(latest_year_enrolment_FTE),
+                      is.na(ICSEA_value))) |>
+  select(School_code,
+         Level_of_schooling,
+         Operational_directorate,
+         latest_year_enrolment_FTE,
+         ICSEA_value)
+
+glimpse(preschools)
+```
+
+```{r}
+ggplot(preschools,
+       aes(y = Operational_directorate,
+           fill = Level_of_schooling)) +
+  geom_bar(position = position_dodge(preserve = "single"),
+           width = 2/3) +
+  coord_cartesian(expand = c(left = FALSE)) +
+  labs(x = "Attached preschools") +
+  theme_classic()
+```
+
+```{r}
+ggplot(preschools,
+       aes(y = Operational_directorate,
+           fill = Level_of_schooling,
+           # Map level of schooling to another aesthetic, linetype:
+           linetype = Level_of_schooling)) +
+  geom_bar(position = position_dodge(preserve = "single"),
+           width = 2/3,
+           # Use the same line colour for every category
+           color = "black") +
+  scale_linetype_manual(values = c("Primary School" = "blank",
+                                   "Central/Community School" = "solid",
+                                   "Infants School" = "dashed")) +
+  coord_cartesian(expand = c(left = FALSE)) +
+  theme_classic()
+```
+
+```{r}
+ggplot(preschools,
+       aes(y = Level_of_schooling)) +
+  geom_bar() +
+  facet_wrap(~Operational_directorate,
+             labeller = label_wrap_gen()) +
+  coord_cartesian(expand = c(left = FALSE)) +
+  theme_classic()
+```
+
+```{r}
+ggplot(preschools,
+       aes(x = latest_year_enrolment_FTE,
+           y = ICSEA_value,
+           colour = Level_of_schooling)) +
+  geom_point(size = 2) +
+  theme_classic()
+```
+
+```{r}
+ggplot(preschools,
+       aes(x = latest_year_enrolment_FTE,
+           y = ICSEA_value,
+           colour = Level_of_schooling,
+           shape = Level_of_schooling)) +
+  geom_point(size = 2) +
+  scale_shape_manual(values = c("Primary School" = "square",
+                                "Central/Community School" = "asterisk",
+                                "Infants School" = "plus")) +
+  theme_classic()
+```
 ### Department of Education guidance
 
 - https://brand.education.nsw.gov.au/content/edam/en/brand-guideline.html
