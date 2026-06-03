@@ -803,7 +803,7 @@ metro_south <- public_schools |>
                               "Secondary School"))
 
 metro_south |>
-  ggplot(aes(x= Date_1st_teacher,
+  ggplot(aes(x = Date_1st_teacher,
              y = ICSEA_value,
              colour = Level_of_schooling,
              shape = Level_of_schooling)) +
@@ -875,7 +875,9 @@ plot_school_count <- function(df) {
     # Build our template plot
     ggplot(aes(y = school_type)) +
     geom_bar() +
-    scale_x_continuous(labels = scales::label_comma()) +
+    # Imrprove the appearance of the x axis
+    scale_x_continuous(labels = scales::label_comma(),
+                       breaks = scales::breaks_pretty()) +
     labs(x = "Number of schools",
          y = "Type of school") +
     theme_doe()
@@ -1035,6 +1037,9 @@ ggplot(metro,
 
 :::
 
-# Other resources
+# Other packages
 
-- 
+- [`colorspace`](https://cran.r-project.org/package=colorspace) provides more tools for assessing colours and palettes using contrast ratios and a variety of other measures. Includes tools for simulating colour blindness.
+- [`ggpattern`](https://coolbutuseless.github.io/package/ggpattern/) helps you define and apply pattern fills. We didn't use any patterns today, but they are another way to avoid relying on colour alone.
+- [`ggpackets`](https://dgkf.github.io/ggpackets/) provides a framework for easily templating `ggplot`s.
+- [`ggrepel`](https://ggrepel.slowkow.com/) helps automate label placement to avoid overlapping text. Super useful if you have a lots of plots to make and don't want to hand-craft the label positions for each one.
