@@ -47,7 +47,7 @@ Whenever you see a 'Run Code' button, you'll need to click it to progress. You c
 
 We'll be using a few packages throughout the rest of the workshop, so load them now:
 
-```{webr}
+```{r}
 #| label: load-packages
 #| exercise: load-packages
 #| autorun: true
@@ -58,7 +58,7 @@ library(ggplot2)
 library(forcats)
 ```
 
-```{webr}
+```{r}
 #| label: overwrite-theme-doe
 #| aurotrun: true
 #| echo: false
@@ -83,7 +83,7 @@ The `doestyle` package includes a dataset called `public_schools`, which is a sn
 
 Let's check that everything is working by building a quick visualisation with `ggplot2`, `doestyle` and the public schools data. Run the code and have a look at the output:
 
-```{webr}
+```{r}
 #| label: fig-check
 
 ggplot(public_schools,
@@ -116,7 +116,7 @@ If you've never used `ggplot2` before, there are plenty of good resources to get
 
 We'll use the copy of `public_schools` included within `doestyle`, and filter it so we're just looking at primary and secondary schools that have enrolments (`latest_year_enrolment_FTE`), a reported LBOTE percentage (`LBOTE_pct`) and a reported ICSEA (`ICSEA_value`).
 
-```{webr}
+```{r}
 #| label: dataset-enrolled
 enrolled <- public_schools |>
   # Keep primary and secondary schools
@@ -133,10 +133,12 @@ enrolled <- public_schools |>
   # Keep just the columns we're interested in visualising
   select(School_code,
          School_name,
+         Operational_directorate,
          latest_year_enrolment_FTE,
          Level_of_schooling,
          LBOTE_pct,
-         ICSEA_value)
+         ICSEA_value,
+         Date_1st_teacher)
 
 # Take a peek:
 glimpse(enrolled)
@@ -144,7 +146,7 @@ glimpse(enrolled)
 
 Let's visualise the relationship between school size and LBOTE percentage:
 
-```{webr}
+```{r}
 #| label: size-vs-lbote1
 ggplot(
   data = enrolled,
@@ -166,29 +168,30 @@ We've made the following declarations, and `ggplot2` has taken care of the rest:
 
 The plot works and tells a story, but it doesn't use the NSW Education brand palette. You can look up our colours in our brand guidelines, but the point of `doestyle` is to reduce the friction involved in making on-brand graphics.
 
-```{webr}
+```{r}
 #| autorun: true
 doestyle::show_colours()
 ```
 
 If we need them, we can also use the whole NSW brand palette:
 
-```{webr}
+```{r}
 #| column: page
 #| fig-width: 10
 #| fig-height: 4
 #| autorun: true
 show_colours("nsw")
 ```
+
 We can also get the hex code for any named brand colours, without having to look at the swatches:
 
-```{webr}
+```{r}
 doe_colours("blue-01")
 ```
 
 Try it for yourself. Pick any two DoE or NSW colour names and retrieve their hex values:
 
-```{webr}
+```{r}
 #| exercise: pick_colours
 
 doe_colours("______", "______")
@@ -197,7 +200,7 @@ doe_colours("______", "______")
 
 Now, use those hex codes in the plot we built earlier. We've added on `scale_colour_manual()`, which lets you modify the colour mapping from the `Level_of_schooling` data to the aesthetics used by `geom_point`. Add the hex codes your retreived:
 
-```{webr}
+```{r}
 #| label: exercise-use-colours-hex
 #| exercise: use-colours-hex
 ggplot(
@@ -213,7 +216,7 @@ ggplot(
 
 Copying and pasting hex codes isn't a great workflow, so let's just use `doe_colours()` inside `scale_colour_manual()`:
 
-```{webr}
+```{r}
 #| label: exercise-use-scale-colour-manual
 #| exercise: use-scale-colour-manual
 ggplot(
@@ -229,7 +232,7 @@ ggplot(
 
 So that you don't have to look up colours for every plot, `doestyle` includes a ready-made scale and palettes that you can use instead of `ggplot2::scale_colour_manual()`: `scale_colour_doe()`.
 
-```{webr}
+```{r}
 #| label: demo-scale-colour-doe
 ggplot(
   data = enrolled,
@@ -244,7 +247,7 @@ ggplot(
 
 Our `scale_colour_doe()` function has a `palette` argument. Its default is `doe_palettes$default`, which provides on-brand defaults for up to 12 categories^[Not that you should ever be trying to produce a plot that uses 12 colours - if so, it's time to rethink what you're trying to visualise!]:
 
-```{webr}
+```{r}
 #| label: fig-demo-palette
 #| fig-height: 1
 #| fig-width: 4
@@ -255,7 +258,7 @@ Other built-in palettes are available in the `doe_palettes` object, which you ca
 
 If you want to define your own palettes, you can:
 
-```{webr}
+```{r}
 #| label: demo-custom-palette
 my_custom_palette <- doe_colours("grey-01", "blue-02")
 
@@ -274,7 +277,7 @@ This will come in handy if you're producing a series of plots with similar categ
 
 Try it yourself. Create a palette with two on-brand colours of your choice, and apply the palette to the plot with `scale-colour_doe()`:
 
-```{webr}
+```{r}
 #| label: exercise-custom-palette
 #| exercise: custom-palette
 ______ <- doe_colours("______", "______")
@@ -292,7 +295,7 @@ ggplot(
 
 Finally, if you don't want to worry about setting scales or designing a palette, you can just apply `theme_doe()`, which will do its best to use sensible^[Sensible for a couple of colours, but after that you are better off doing your own decision-making.] defaults. You'll notice that `theme_doe()` applies some other defaults, like removing the panel background, increasing most text sizes and reducing the number of gridlines:
 
-```{webr}
+```{r}
 #| label: demo-theme-doe
 ggplot(
   data = enrolled,
@@ -384,7 +387,7 @@ If you have more than about 3 categories, there's a good chance you'll be better
 
 For this exercise, we'll look at schools with an attached preschool. Here's our dataset:
 
-```{webr}
+```{r}
 #| label: preschools-setup
 preschools <- public_schools |>
   filter(Preschool_ind == "Y") |>
@@ -402,7 +405,7 @@ glimpse(preschools)
 
 We're counting the number of schools with an attached preschool, by directorate. Here's a plot that uses colour alone to distinguish between the types of school:
 
-```{webr}
+```{r}
 #| label: preschools-base
 ggplot(preschools,
        aes(y = Operational_directorate,
@@ -415,7 +418,7 @@ ggplot(preschools,
 
 We can improve the accessibility of the plot by using `linetype` in addition to colour:
 
-```{webr}
+```{r}
 #| label: preschool-with-linetype
 ggplot(preschools,
        aes(y = Operational_directorate,
@@ -430,7 +433,7 @@ ggplot(preschools,
 
 We should be able to make the plot a little bit more attractive, while still overloading the colour aesthetic, by choosing colour-linetype combinations more carefully, using `scale_fill_manual()` and `scale_linetype_manual()`.
 
-```{webr}
+```{r}
 #| label: preschool-with-linetype-prettier
 ggplot(preschools,
        aes(y = Operational_directorate,
@@ -453,7 +456,7 @@ ggplot(preschools,
 
 Is it worth trying a different type of plot altogether?
 
-```{webr}
+```{r}
 #| label: preschools-small-multiples
 ggplot(preschools,
        aes(y = Level_of_schooling)) +
@@ -468,7 +471,7 @@ ggplot(preschools,
 
 It's your turn. Using the same `preschools` dataset, we want to investigate the relationship between school size and its ICSEA.
 
-```{webr}
+```{r}
 #| label: demo-preschool-colour
 ggplot(preschools,
        aes(x = ICSEA_value,
@@ -482,7 +485,7 @@ There's plenty we can learn from this plot, but unfortunately it relies on the c
 
 How could we improve it? Make your changes here:
 
-```{webr}
+```{r}
 #| label: exercise-preschool-colour
 #| exercise: preschool-colour
 ggplot(preschools,
@@ -498,7 +501,7 @@ Check out the documentation for [`scale_shape()`](https://ggplot2.tidyverse.org/
 :::
 
 ::: {.solution exercise="preschool-colour"}
-```{webr}
+```{r}
 #| label: exericse-preschool-colour-solution
 # This is how I tackled the problem - your solution might be better!
 ggplot(preschools,
@@ -527,7 +530,7 @@ ggplot(preschools,
 
 Sometimes your stakeholders will ask for data labels or other text annotations^[An appropriate question when asked for data labels is "Would a table be clearer?"]. 
 
-```{webr}
+```{r}
 #| label: demo-lbote-topn
 # This is a bit silly, but we're going to plot the school with the highest
 # LBOTE proportion in each directorate:
@@ -580,7 +583,7 @@ Fortunately, `doestyle` provides some help with choosing contrasting colours for
 
 Contrast ratio has a maximum of 21:
 
-```{webr}
+```{r}
 #| label: maximum-contrast-ratio
 
 # For example: black text on a white background
@@ -589,7 +592,7 @@ contrast_ratio(colour1 = doe_colours("white"), colour2 = doe_colours("black"))
 
 ... and a minimum of 1:
 
-```{webr}
+```{r}
 #| label: minimum-contrast-ratio
 # For example: black text on a black background
 contrast_ratio(doe_colours("black"), doe_colours("black"))
@@ -597,7 +600,7 @@ contrast_ratio(doe_colours("black"), doe_colours("black"))
 
 The Department of [Education Brand Guidelines](https://brand.education.nsw.gov.au/content/edam/en/brand-guideline.html) provide a helpful matrix of combinations that meet the 4.5:1 contrast requirement, but it is helpful to be able to compute them in R, as well. Suppose you want to check several combinations at once:
 
-```{webr}
+```{r}
 #| label: check-multiple-ratios
 # Check red-01, blue-01, grey-01 and orange-02 against a white background:
 contrast_ratio(
@@ -608,7 +611,7 @@ contrast_ratio(
 
 You could even somewhat automate the check with some logic, to make sure the palette you've chosen meets the 3.5:1 ratio. In fact, we do something like this in the automated tests that `doestyle` goes through before a release:
 
-```{webr}
+```{r}
 #| label: test-multiple-ratios
 # Check red-01, blue-01, grey-01 and orange-02 against a white background:
 contrast_ratio(
@@ -621,7 +624,7 @@ contrast_ratio(
 
 We'll be looking at the proportion of schools with opportunity classes:
 
-```{webr}
+```{r}
 #| label: dataset-oc
 oc <- public_schools |>
   filter_out(Operational_directorate == "Unassigned") |>
@@ -638,7 +641,7 @@ glimpse(oc)
 
 Can you improve the text contrast of this plot?
 
-```{webr}
+```{r}
 #| label: oc-before
 ggplot(oc, aes(x = proportion,
                y = Operational_directorate,
@@ -660,7 +663,7 @@ ggplot(oc, aes(x = proportion,
 
 Step 1: find a colour that has a contrast ratio of at least 4.5:1 when plotted over `blue-01` and `red-02`:
 
-```{webr}
+```{r}
 #| label: exercise-find-ratio
 #| exercise: find-ratio
 contrast_ratio(
@@ -671,7 +674,7 @@ contrast_ratio(
 
 Step 2: apply your high-contrast colour to the text layer:
 
-```{webr}
+```{r}
 #| label: exercise-improve-contrast
 #| exercise: improve-contrast
 ggplot(oc, aes(x = proportion,
@@ -694,7 +697,7 @@ ggplot(oc, aes(x = proportion,
 ```
 
 ::: { .solution exercise="improve-contrast"}
-```{webr}
+```{r}
 #| label: solution-improve-contrast
 ggplot(oc, aes(x = proportion,
                y = Operational_directorate,
@@ -723,7 +726,7 @@ ggplot(oc, aes(x = proportion,
 
 `doestyle` provides some pre-baked text and secondary colours so you don't have to go searching for them.
 
-```{webr}
+```{r}
 #| label: demo-text-colours
 #| fig-height: 1
 doe_colours("blue-01", "red-02")
@@ -733,7 +736,7 @@ plot(doe_colours("blue-01", "red-02"))
 plot(text_colours("blue-01", "red-02"))
 ```
 
-```{webr}
+```{r}
 #| label: demo-secondary_colours
 #| fig-height: 1
 doe_colours("blue-01", "red-02")
@@ -745,13 +748,13 @@ plot(secondary_colours("blue-01", "red-02"))
 
 If these secondary and text colours look familiar, it's because they're used in `show_colours()`:
 
-```{webr}
+```{r}
 #| label: demo-show-colors-secondary-text
 doestyle::show_colours()
 ```
 
 
-```{webr}
+```{r}
 school_gender <- public_schools |>
   count(Operational_directorate, School_gender) |>
   mutate(.by = Operational_directorate,
@@ -770,7 +773,7 @@ ggplot(school_gender,
 
 If you're producing multiple plots with similar subject matter, it's helpful to define common scales. If you store them in a standard R list, `ggplot2` will apply them all when you add the list to a plot. This helps you prepare reusable components for your publication.
 
-```{webr}
+```{r}
 #| label: demo-school-types
 # Store reusable colour and shape scales for a few types of schools
 school_types_scales <- list(
@@ -789,7 +792,7 @@ school_types_scales <- list(
 
 Now we can use this scale in multiple plots, and have a consistent visual language.
 
-```{webr}
+```{r}
 #| label: demo-multiple-metro-south
 metro_south <- public_schools |>
   filter(
@@ -821,7 +824,7 @@ metro_south |>
 
 The same logic applies to more than scales. If you want to bundle a lot of customisations, put them in a `list()` and add the list to your plot.
 
-```{webr}
+```{r}
 #| label: demo-bundling
 my_mega_customisation <- list(
   list(
@@ -861,7 +864,7 @@ metro_south |>
 
 If you need to make similar plots over and over, it's probably time to write a function. A simple pattern is to write a function that takes a dataframe and returns a `ggplot2` plot object.
 
-```{webr}
+```{r}
 #| label: demo-function
 
 # Bar plot: counts of schools, by type
@@ -881,7 +884,7 @@ plot_school_count <- function(df) {
 
 Because the function takes data and returns a `ggplot2`, you have flexibility to easily customise its inputs and further customise its output. Here's the base case, for all schools:
 
-```{webr}
+```{r}
 #| label: demo-function-base-case
 public_schools |>
   plot_school_count()
@@ -889,7 +892,7 @@ public_schools |>
 
 We can filter the input to a single principal network:
 
-```{webr}
+```{r}
 #| label: demo-function-filter-input
 public_schools |>
   filter(Principal_network == "Wagga Wagga") |>
@@ -898,7 +901,7 @@ public_schools |>
 
 We can further customise the output:
 
-```{webr}
+```{r}
 #| label: demo-function-customise-output
 #| fig-height: 8
 public_schools |>
@@ -909,7 +912,7 @@ public_schools |>
 
 ... and we can use our function with functionals and/or loops to really get going with automation:
 
-```{webr}
+```{r}
 #| label: demo-functionals
 public_schools |>
   filter(Operational_directorate == "Metropolitan South") |>
@@ -920,5 +923,118 @@ public_schools |>
 
 ### Exercise: factor out common parts of your workflow
 
+Can you bundle several customisations so that you have a consistent, accessible and on-brand design language for these two plots?
 
+```{r}
+#| label: demo-factor-out
+#| fig-height: 6
+metro <- enrolled |>
+  filter(grepl("Metro", Operational_directorate))
 
+# Compare the relationship between ICSEA and LBOTE proportion,
+# for each directorate, by school type
+ggplot(metro,
+       aes(x = ICSEA_value,
+           y = LBOTE_pct,
+           colour = Level_of_schooling)) +
+  geom_point() +
+  facet_wrap(~Operational_directorate,
+             labeller = label_wrap_gen(20),
+             ncol = 1)
+
+# Compare the relationship between opening date and current ICSEA,
+# by school type
+ggplot(metro,
+       aes(x = Date_1st_teacher,
+           y = ICSEA_value,
+           colour = Level_of_schooling)) +
+  geom_point()
+```
+
+Make your changes here. 
+
+```{r}
+#| label: exercise-factor-common
+#| exercise: factor-common
+#| fig-height: 6
+
+common_style <- list(
+  ______
+)
+
+# Compare the relationship between ICSEA and LBOTE proportion,
+# for each directorate, by school type
+ggplot(metro,
+       aes(x = ICSEA_value,
+           y = LBOTE_pct,
+           colour = Level_of_schooling,
+           ______)) +
+  geom_point() +
+  facet_wrap(~Operational_directorate,
+             labeller = label_wrap_gen(20),
+             ncol = 1) +
+  ______
+
+# Compare the relationship between opening date and current ICSEA,
+# by school type
+ggplot(metro,
+       aes(x = Date_1st_teacher,
+           y = ICSEA_value,
+           colour = Level_of_schooling,
+           ______)) +
+  geom_point() +
+  ______
+```
+
+::: { .solution exercise="factor-common"}
+
+```{r}
+#| label: solution-factor-common
+#| fig-height: 6
+# Define common style elements as a list
+common_style <- list(
+  # Use common shape and colour scales
+  scale_colour_manual(
+    values = doe_colours("Primary School" = "blue-01",
+                         "Secondary School" = "red-02")),
+  scale_shape_manual(
+    values = c("Primary School" = "circle",
+               "Secondary School" = "plus")),
+  # Use a consistent theme
+  theme_doe(base_size = 12),
+  theme(panel.border = element_rect(),
+        legend.position = "right")
+)
+
+# Compare the relationship between ICSEA and LBOTE proportion,
+# for each directorate, by school type
+ggplot(metro,
+       aes(x = ICSEA_value,
+           y = LBOTE_pct,
+           colour = Level_of_schooling,
+           # Use shape as well as colour
+           shape = Level_of_schooling)) +
+  geom_point() +
+  facet_wrap(~Operational_directorate,
+             ncol = 1) +
+  # Add our common styling
+  common_style
+
+# Compare the relationship between opening date and current ICSEA,
+# by school type
+ggplot(metro,
+       aes(x = Date_1st_teacher,
+           y = ICSEA_value,
+           colour = Level_of_schooling,
+           # Use shape as well as colour
+           shape = Level_of_schooling)) +
+  geom_point() +
+  # Add our common styling
+  common_style
+```
+
+:::
+
+# Other resources
+
+- 
