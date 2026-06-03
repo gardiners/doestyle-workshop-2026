@@ -535,7 +535,7 @@ ggplot(preschools,
 ```
 :::
 
-### Text contrast
+## Text contrast
 
 Sometimes your stakeholders will ask for data labels or other text annotations^[An appropriate question when asked for data labels is "Would a table be clearer?"]. 
 
