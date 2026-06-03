@@ -536,14 +536,15 @@ lbote_topn <- public_schools |>
 ggplot(lbote_topn,
        aes(x = LBOTE_pct,
            y = school_name_fct)) +
-  # Layers
-  geom_col() +
-  # Left-hand text (school name)
+  # Layers:
+  ## The bars on which we'll draw text
+  geom_col(width = 4/5) +
+  ## Left-hand text (school name)
     geom_text(aes(label = School_name),
             x = 1,
             hjust = "left",
             size = 12 / .pt) +
-  # Right-hand text (LBOTE %)
+  ## Right-hand text (LBOTE %)
   geom_text(aes(label = school_pct_label),
             hjust = "right",
             size = 12 / .pt) +
@@ -556,7 +557,208 @@ ggplot(lbote_topn,
     axis.title.y = element_blank(),
     panel.grid = element_blank())
 ```
-`doestyle` provides some help with choosing contrasting colours for text:
+
+If we want to meet WCAG 2.2 Success Criterion 1.4.3 Contrast (Minimum) (Level AA), we need to make sure that text has a contrast ratio of at least 4.5:1 against its background. For WCAG, W3C defines contrast ratio as 
+
+$$
+\text{CR} = \frac{L_1 + 0.05}{L_2 + 0.05}
+$$
+
+where $L_1$ and $L_2$ are the relative luminances of the brighter and darker colours being compared. The function for relative luminance is piecewise and depends on the red-, green- and blueness of the colour [@relativeluminance].
+
+Fortunately, `doestyle` provides some help with choosing contrasting colours for text.
+
+- `contrast_ratio()`
+- `relative_luminance()`
+
+Contrast ratio has a maximum of 21:
+
+```{r}
+#| label: maximum-contrast-ratio
+
+# For example: black text on a white background
+contrast_ratio(colour1 = doe_colours("white"), colour2 = doe_colours("black"))
+```
+
+... and a minimum of 1:
+
+```{r}
+#| label: minimum-contrast-ratio
+# For example: black text on a black background
+contrast_ratio(doe_colours("black"), doe_colours("black"))
+```
+
+The Department of [Education Brand Guidelines](https://brand.education.nsw.gov.au/content/edam/en/brand-guideline.html) provide a helpful matrix of combinations that meet the 4.5:1 contrast requirement, but it is helpful to be able to compute them in R, as well. Suppose you want to check several combinations at once:
+
+```{r}
+#| label: check-multiple-ratios
+# Check red-01, blue-01, grey-01 and orange-02 against a white background:
+contrast_ratio(
+  colour1 = doe_colours("red-01", "blue-01", "grey-01", "orange-02"),
+  colour2 = doe_colours("white")
+)
+```
+
+You could even somewhat automate the check with some logic, to make sure the palette you've chosen meets the 3.5:1 ratio. In fact, we do something like this in the automated tests that `doestyle` goes through before a release:
+
+```{r}
+#| label: test-multiple-ratios
+# Check red-01, blue-01, grey-01 and orange-02 against a white background:
+contrast_ratio(
+  colour1 = doe_colours("red-01", "blue-01", "grey-01", "orange-02"),
+  colour2 = doe_colours("white")
+) > 4.5
+```
+
+### Exercise: find adequate text contrast
+
+We'll be looking at the proportion of schools with opportunity classes:
+
+```{r}
+#| label: dataset-oc
+oc <- public_schools |>
+  filter_out(Operational_directorate == "Unassigned") |>
+  # Pre-summarise our counts, so we can compute proportions
+  count(Operational_directorate, Opportunity_class) |>
+  mutate(.by = Operational_directorate,
+         proportion = n / sum(n),
+         pct_label = paste0(round(proportion * 100, 1), "%")
+  )
+
+# Take a peek:
+glimpse(oc)
+```
+
+Can you improve the text contrast of this plot?
+
+```{r}
+#| label: oc-before
+ggplot(oc, aes(x = proportion,
+               y = Operational_directorate,
+               fill = Opportunity_class,
+               label = pct_label)) +
+  # The bars upon which we'll draw text
+  geom_col(position = position_stack()) +
+  # Text layer: label for opportunity class == "Y"
+  geom_text(x = 0.01,
+            hjust = 0.01,
+            data = ~filter(.x, Opportunity_class == "Y")) +
+  # Tweak the appearance of our x and y scales
+  scale_x_continuous(name = "Percentage of schools with Opportunity Class",
+                     labels = scales::label_percent()) +
+  scale_y_discrete(name = NULL,
+                   labels = scales::label_wrap(25)) +
+  theme_doe() 
+```
+
+Step 1: find a colour that has a contrast ratio of at least 4.5:1 when plotted over `blue-01` and `red-02`:
+
+```{r}
+#| label: exercise-find-ratio
+#| exercise: find-ratio
+contrast_ratio(
+  colour1 = ______,
+  colour2 = doe_colours("blue-01", "red-02")
+)
+```
+
+Step 2: apply your high-contrast colour to the text layer:
+
+```{r}
+#| label: exercise-improve-contrast
+#| exercise: improve-contrast
+ggplot(oc, aes(x = proportion,
+               y = Operational_directorate,
+               fill = Opportunity_class,
+               label = pct_label)) +
+  # The bars upon which we'll draw text
+  geom_col(position = position_stack()) +
+  # Text layer: label for opportunity class == "Y"
+  geom_text(x = 0.01,
+            hjust = 0.01,
+            data = ~filter(.x, Opportunity_class == "Y")
+            colour = ______) +
+  # Tweak the appearance of our x and y scales
+  scale_x_continuous(name = "Percentage of schools with Opportunity Class",
+                     labels = scales::label_percent()) +
+  scale_y_discrete(name = NULL,
+                   labels = scales::label_wrap(25)) +
+  theme_doe() 
+```
+
+::: { .solution exercise="improve-contrast"}
+```{r}
+#| label: solution-improve-contrast
+ggplot(oc, aes(x = proportion,
+               y = Operational_directorate,
+               fill = Opportunity_class,
+               label = pct_label)) +
+  # The bars upon which we'll draw text
+  geom_col(position = position_stack()) +
+  # Text layer: label for opportunity class == "Y"
+  geom_text(x = 0.01,
+            hjust = 0.01,
+            data = ~filter(.x, Opportunity_class == "Y"),
+            # I went with white, and also made the text a bit bigger
+            colour = "white",
+            size = 14,
+            size.unit = "pt") +
+  # Tweak the appearance of our x and y scales
+  scale_x_continuous(name = "Percentage of schools",
+                     labels = scales::label_percent()) +
+  scale_y_discrete(name = NULL,
+                   labels = scales::label_wrap(25)) +
+  theme_doe() 
+```
+:::
+
+### `text_colours()` and `secondary_colours()`
+
+```{r}
+#| label: demo-text-colours
+#| fig-height: 1
+doe_colours("blue-01", "red-02")
+text_colours("blue-01", "red-02")
+
+plot(doe_colours("blue-01", "red-02"))
+plot(text_colours("blue-01", "red-02"))
+```
+
+```{r}
+#| label: demo-secondary_colours
+#| fig-height: 1
+doe_colours("blue-01", "red-02")
+secondary_colours("blue-01", "red-02")
+
+plot(doe_colours("blue-01", "red-02"))
+plot(secondary_colours("blue-01", "red-02"))
+```
+
+If these secondary and text colours look familiar, it's because they're used in `show_colours()`:
+
+```{r}
+#| label: demo-show-colors-secondary-text
+doestyle::show_colours()
+```
+
+
+```{r}
+school_gender <- public_schools |>
+  count(Operational_directorate, School_gender) |>
+  mutate(.by = Operational_directorate,
+         proportion = n / sum(n))
+
+ggplot(school_gender,
+       aes(x = proportion,
+           y = Operational_directorate,
+           fill = School_gender)) +
+  geom_col()
+```
+
+
+
+
+
 
 ```{r}
 doestyle::show_colours()
