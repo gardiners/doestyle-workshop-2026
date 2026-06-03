@@ -3,10 +3,11 @@ title: "Automate on-brand, accessible data visualisations for your reporting usi
 author: "Sam Gardiner (and you!)"
 date: "4 June 2026"
 format:
-  html:
+  live-html:
     fig-cap-location: margin
     reference-location: margin
     citation-location: margin
+    toc: true
 bibliography: references.bib
 engine: knitr
 knitr:
@@ -39,15 +40,38 @@ A picture tells a thousand words - but it can be time-consuming to craft data vi
 
 This workshop is designed to be completed in a web browser. It uses [WebR](https://docs.r-wasm.org/webr/latest/) and [Quarto Live](https://r-wasm.github.io/quarto-live/) to run a [WebAssembly](https://webassembly.org/)-powered R session within your browser, with no installation required.
 
+:::{.callout-note}
+Whenever you see a 'Run Code' button, you'll need to click it to progress. You can also run the code in a block with Ctrl+Enter (Windows/Linux) or Command+Enter (Mac), if your text cursor is within the block. You can activate auto-completion with Ctrl+Space. You can edit any of the blocks and run them to see how your changes affect the results. Some of the blocks contain exercises - usually you'll need to replace sections of code that are missing, denoted with `______`.
+:::
+
+
 We'll be using a few packages throughout the rest of the workshop, so load them now:
 
 ```{r}
-library(doestyle) #<1>
-library(dplyr) #<2>
-library(ggplot2) #<3>
+#| label: load-packages
+#| exercise: load-packages
+#| autorun: true
+#| output: false
+library(doestyle)
+library(dplyr)
+library(ggplot2)
 ```
 
-As you loaded this web page, the `doestyle` R package was installed for your use during the workshop. However, if you want to use `doestyle` for your own work in RStudio or Visual Studio Code, you'll need to install it on your own computer:
+```{r}
+#| label: overwrite-theme-doe
+#| aurotrun: true
+#| echo: false
+#| output: false
+
+# We need to modify theme_doe() slightly for webr. By default it uses the Public
+# Sans face, which in turn loads `showtext`, which breaks text rendering in
+# webr. We'll wrap it to change the default to sans, instead.
+theme_doe <- function(base_size = 16, base_family = "sans", ...) {
+  doestyle::theme_doe(base_size, base_family, ...)
+}
+```
+
+As you loaded this web page, the `doestyle` R package was installed for your use during the workshop. However, if you want to use `doestyle` for your own work in RStudio or Visual Studio Code, you'll need to install it on your own computer (but not today):
 
 ```r
 install.packages('doestyle', repos = c('https://nsw-education.r-universe.dev',
@@ -56,19 +80,19 @@ install.packages('doestyle', repos = c('https://nsw-education.r-universe.dev',
 
 The `doestyle` package includes a dataset called `public_schools`, which is a snapshot of the [NSW public schools master dataset](https://www.metadata.nsw.gov.au/item/9544/distribution/nsw-public-schools-master-dataset).
 
-
 Let's check that everything is working by building a quick visualisation with `ggplot2`, `doestyle` and the public schools data. Run the code and have a look at the output:
 
 ```{r}
-#| label: fig-intro
-#| fig-cap: Our first figure. Did it work? Is it accessible? Does it tell a story?
+#| label: fig-check
 
 ggplot(public_schools,
        aes(y = Operational_directorate)) +
   geom_bar() +
   theme_doe() 
-  #theme(geom = element_geom(paper = doe_colours("blue-01")))
 ```
+
+You might notice that we didn't have to specify axis labels. This is because newer versions of `ggplot2` automatically use column label metadata, if it exists [@ggplot2400-labels]. The `public_schools` object has column labels that were extracted from our metadata repository at [Metadata.NSW](https://www.metadata.nsw.gov.au/item/9544/distribution/nsw-public-schools-master-dataset).
+
 # A quick tour of `ggplot2`, as helped by `doestyle`
 
 ## The Grammar of Graphics + `doestyle`
@@ -81,23 +105,28 @@ ggplot(public_schools,
   - easy access to NSW Government-branded colours
   - a couple of custom geometries
   - tools to check colour contrast ratios and relative luminosity
-  - tools to make it slightlier easier to use the Public Sans typeface
+  - tools to make it slightly easier to use the Public Sans typeface
   
-## Warm-up exercises: colours and themes
+## Warm-up exercises: colours, scales and themes
 
 We'll use the copy of `public_schools` included within `doestyle`, and filter it so we're just looking at primary and secondary schools that have enrolments (`latest_year_enrolment_FTE`), a reported LBOTE percentage (`LBOTE_pct`) and a reported ICSEA (`ICSEA_value`).
 
 ```{r}
+#| label: dataset-enrolled
 enrolled <- public_schools |>
-  filter(Level_of_schooling %in% c("Primary School", "Secondary School")) |> #<1>
-  filter_out( #<2>
+  # Keep primary and secondary schools
+  filter(Level_of_schooling %in% c("Primary School",
+                                   "Secondary School")) |>
+  # Drop the schools without enrolments, LBOTE proportion or ICSEA
+  filter_out(
     when_any(
       is.na(latest_year_enrolment_FTE),
       is.na(LBOTE_pct),
       is.na(ICSEA_value)
     )
   ) |>
-  select(School_code, #<3>
+  # Keep just the columns we're interested in visualising
+  select(School_code,
          School_name,
          latest_year_enrolment_FTE,
          Level_of_schooling,
@@ -105,34 +134,45 @@ enrolled <- public_schools |>
          ICSEA_value)
 
 # Take a peek:
-glimpse(enrolled) #<4>
+glimpse(enrolled)
 ```
 
 Let's visualise the relationship between school size and LBOTE percentage:
 
 ```{r}
+#| label: size-vs-lbote1
 ggplot(
-  data = enrolled, #<1>
-  mapping = aes( #<2>
-    x = latest_year_enrolment_FTE, #<3>
-    y = LBOTE_pct, #<4>
-    colour = Level_of_schooling)) + #<5> 
-  geom_point() + #<3>
-  scale_x_continuous(labels = scales::label_comma()) #<4>
+  data = enrolled,
+  mapping = aes(
+    x = latest_year_enrolment_FTE,
+    y = LBOTE_pct,
+    colour = Level_of_schooling)) +
+  geom_point() +
+  scale_x_continuous(labels = scales::label_comma())
 ```
 
-The plot works and tells a story, but it doesn't use the NSW Education brand palette. You can look up our colours in our brand guidelines, but the point of `doestyle` is to reduce the friction involved in making on-brand graphics:
+We've made the following declarations, and `ggplot2` has taken care of the rest:
+
+- Map enrolment count values onto the x-axis
+- Map LBOTE proportion values onto the y-axis
+- Map level of schooling values onto colour
+- Display each of these mappings with the 'point' geometry
+- Tweak the x-axis scale so that number format includes a comma
+
+The plot works and tells a story, but it doesn't use the NSW Education brand palette. You can look up our colours in our brand guidelines, but the point of `doestyle` is to reduce the friction involved in making on-brand graphics.
 
 ```{r}
+#| autorun: true
 doestyle::show_colours()
 ```
 
-If you need them, we can also use the whole NSW brand palette:
+If we need them, we can also use the whole NSW brand palette:
 
 ```{r}
 #| column: page
 #| fig-width: 10
 #| fig-height: 4
+#| autorun: true
 show_colours("nsw")
 ```
 We can also get the hex code for any named brand colours, without having to look at the swatches:
@@ -146,14 +186,15 @@ Try it for yourself. Pick any two DoE or NSW colour names and retrieve their hex
 ```{r}
 #| exercise: pick_colours
 
-# doe_colours("______", "______")
-doe_colours("blue-01", "red-02")
+doe_colours("______", "______")
 ```
 
 
-Now, use those hex codes in the plot we built earlier. We've added on `scale_colour_manual()`, which lets you create a mapping from the `Level_of_schooling` data to the aesthetics used by `geom_point`. Add the hex codes:
+Now, use those hex codes in the plot we built earlier. We've added on `scale_colour_manual()`, which lets you modify the colour mapping from the `Level_of_schooling` data to the aesthetics used by `geom_point`. Add the hex codes your retreived:
 
 ```{r}
+#| label: exercise-use-colours-hex
+#| exercise: use-colours-hex
 ggplot(
   data = enrolled,
   mapping = aes(
@@ -162,13 +203,14 @@ ggplot(
     colour = Level_of_schooling)) +
   geom_point() +
   scale_x_continuous(labels = scales::label_comma()) +
-  # scale_colour_manual(values = c("______", "______")) #<1>
-  scale_colour_manual(values = c("#002664", "#D7153A"))
+  scale_colour_manual(values = c("______", "______"))
 ```
 
 Copying and pasting hex codes isn't a great workflow, so let's just use `doe_colours()` inside `scale_colour_manual()`:
 
 ```{r}
+#| label: exercise-use-scale-colour-manual
+#| exercise: use-scale-colour-manual
 ggplot(
   data = enrolled,
   mapping = aes(
@@ -177,13 +219,13 @@ ggplot(
     colour = Level_of_schooling)) +
   geom_point() +
   scale_x_continuous(labels = scales::label_comma()) +
-  # scale_colour_manual(values = doe_colours("______", "______")) 
-  scale_colour_manual(values = doe_colours("blue-01", "red-02"))
+  scale_colour_manual(values = doe_colours("______", "______"))
 ```
 
 So that you don't have to look up colours for every plot, `doestyle` includes a ready-made scale and palettes that you can use instead of `ggplot2::scale_colour_manual()`: `scale_colour_doe()`.
 
 ```{r}
+#| label: demo-scale-colour-doe
 ggplot(
   data = enrolled,
   mapping = aes(
@@ -192,13 +234,15 @@ ggplot(
     colour = Level_of_schooling)) +
   geom_point() +
   scale_x_continuous(labels = scales::label_comma()) +
-  scale_colour_doe() #<1>
+  scale_colour_doe()
 ```
 
 Our `scale_colour_doe()` function has a `palette` argument. Its default is `doe_palettes$default`, which provides on-brand defaults for up to 12 categories^[Not that you should ever be trying to produce a plot that uses 12 colours - if so, it's time to rethink what you're trying to visualise!]:
 
 ```{r}
-#| fig-height: 2
+#| label: fig-demo-palette
+#| fig-height: 1
+#| fig-width: 4
 plot(doe_palettes$default)
 ```
 
@@ -207,6 +251,7 @@ Other built-in palettes are available in the `doe_palettes` object, which you ca
 If you want to define your own palettes, you can:
 
 ```{r}
+#| label: demo-custom-palette
 my_custom_palette <- doe_colours("grey-01", "blue-02")
 
 ggplot(
@@ -220,9 +265,15 @@ ggplot(
   scale_colour_doe(palette = my_custom_palette) 
 ```
 
-Finally, if you don't want to worry about setting scales or designing a palette, you can just apply `theme_doe()`, which will do its best to use sensible^[Sensible for a couple of colours, but after that you are better off doing your own decision-making.] defaults. You'll notice that `theme_doe()` applies some other defaults, liking removing the panel background, using Public Sans, increasing most text sizes and reducing the number of gridlines:
+This will come in handy if you're producing a series of plots with similar categories. Having the same colour language across your plots will reduce the cognitive burden of interpreting them.
+
+Try it yourself. Create a palette with two on-brand colours of your choice, and apply the palette to the plot with `scale-colour_doe()`:
 
 ```{r}
+#| label: exercise-custom-palette
+#| exercise: custom-palette
+______ <- doe_colours("______", "______")
+
 ggplot(
   data = enrolled,
   mapping = aes(
@@ -230,8 +281,26 @@ ggplot(
     y = LBOTE_pct,
     colour = Level_of_schooling)) +
   geom_point() +
+  scale_x_continuous(labels = scales::label_comma()) +
+  scale_colour_doe(palette = ______) 
+```
+
+Finally, if you don't want to worry about setting scales or designing a palette, you can just apply `theme_doe()`, which will do its best to use sensible^[Sensible for a couple of colours, but after that you are better off doing your own decision-making.] defaults. You'll notice that `theme_doe()` applies some other defaults, like removing the panel background, increasing most text sizes and reducing the number of gridlines:
+
+```{r}
+#| label: demo-theme-doe
+ggplot(
+  data = enrolled,
+  mapping = aes(
+    x = latest_year_enrolment_FTE,
+    y = LBOTE_pct,
+    colour = Level_of_schooling)) +
+  geom_point() +
+  scale_x_continuous(labels = scales::label_comma()) +
   theme_doe()
 ```
+
+Depending on the medium for which you're designing your plots, you may want to tweak the `theme_doe()` defaults. If you are using more than one geom (for example, a labelled bar plot - `geom_col()` and `geom_text()`) you will definitely need to start thinking about which colour and fill scales to use.
 
 There's still plenty more we could do to polish this plot, but for now we'll move on to our main topic.
 
@@ -262,7 +331,6 @@ We aim for level AA conformance with Web Content Accessibility Guidelines 2.2 [@
 
 [@w3cwebaccessibilityinitiativewaiWebContentAccessibility]
 
-
 You can read [the whole guideline](https://www.w3.org/TR/WCAG22/), but for our purpose today, we're most interested in sections of [Guideline 1.4 Distinguishable](https://www.w3.org/TR/WCAG22/#distinguishable):
 
 > Make it easier for users to see and hear content including separating foreground from background.
@@ -289,11 +357,13 @@ About 1 in 20 of your audience will have some form of colour blindness. If you u
 _Large text_ means 18 points, or 14 points and bold.
 :::
 
+The WWC provides excellent guidance and examples [@worldwidewebconsortiumWebContentAccessibility2024].
+
 - [Quick reference with examples](https://www.w3.org/WAI/WCAG22/quickref/#contrast-minimum)
 
 ## How can we meet the standard?
 
-Use a second aesthetic mapping (an addition to colour) to represent categories. Depending on your plot type and data, there are many workable options:
+If we need to use colour, often, we'll need to add a second aesthetic mapping (in addition to colour) to represent categories. Depending on your plot type and data, there are many workable options:
 
 - Colour + shape
 - Colour + pattern or line type
@@ -301,19 +371,16 @@ Use a second aesthetic mapping (an addition to colour) to represent categories. 
 
 If you have more than about 3 categories, there's a good chance you'll be better off designing a simpler visual:
 
-- Can you move your categories to a labelled axis?
+- Can you move your coloured categories to a labelled axis?
 - Can you use small multiples instead (e.g. `ggplot2::facet_wrap()` or `facet_grid()`)?
 - Would a table be easier to interpret?
 
-### Exercise: getting away from colour alone
+## Getting away from colour alone
 
-For this exercise, we'll look at schools with an attached preschool:
+For this exercise, we'll look at schools with an attached preschool. Here's our dataset:
 
 ```{r}
-library(dplyr)
-library(ggplot2)
-library(tidyr)
-
+#| label: preschools-setup
 preschools <- public_schools |>
   filter(Preschool_ind == "Y") |>
   filter_out(when_any(is.na(latest_year_enrolment_FTE),
@@ -324,95 +391,170 @@ preschools <- public_schools |>
          latest_year_enrolment_FTE,
          ICSEA_value)
 
+# Take a peek:
 glimpse(preschools)
 ```
 
+We're counting the number of schools with an attached preschool, by directorate. Here's a plot that uses colour alone to distinguish between the types of school:
+
 ```{r}
+#| label: preschools-base
 ggplot(preschools,
        aes(y = Operational_directorate,
            fill = Level_of_schooling)) +
   geom_bar(position = position_dodge(preserve = "single"),
            width = 2/3) +
-  coord_cartesian(expand = c(left = FALSE)) +
   labs(x = "Attached preschools") +
   theme_doe(base_size = 12)
 ```
 
+We can improve the accessibility of the plot by using `linetype` in addition to colour:
+
 ```{r}
+#| label: preschool-with-linetype
 ggplot(preschools,
        aes(y = Operational_directorate,
            fill = Level_of_schooling,
-           # Map level of schooling to another aesthetic, linetype:
+           # Map level of schooling to a second aesthetic, linetype:
+           linetype = Level_of_schooling)) +
+  geom_bar(position = position_dodge(preserve = "single"),
+           width = 2/3) +
+  coord_cartesian(expand = c(left = FALSE)) +
+  theme_doe(base_size = 12)
+```
+
+We should be able to make the plot a little bit more attractive, while still overloading the colour aesthetic, by choosing colour-linetype combinations more carefully, using `scale_fill_manual()` and `scale_linetype_manual()`.
+
+```{r}
+#| label: preschool-with-linetype-prettier
+ggplot(preschools,
+       aes(y = Operational_directorate,
+           fill = Level_of_schooling,
+           # Map level of schooling to a second aesthetic, linetype:
            linetype = Level_of_schooling)) +
   geom_bar(position = position_dodge(preserve = "single"),
            width = 2/3,
            # Use the same line colour for every category
-           color = "black") +
+           color = doe_colours("blue-01")) +
+  scale_fill_manual(values = doe_colours("Primary School" = "blue-01",
+                                           "Central/Community School" = "red-03",
+                                           "Infants School" = "blue-03")) +
   scale_linetype_manual(values = c("Primary School" = "solid",
-                                   "Central/Community School" = "dotted",
+                                   "Central/Community School" = "solid",
                                    "Infants School" = "dashed")) +
   coord_cartesian(expand = c(left = FALSE)) +
   theme_doe(base_size = 12)
 ```
 
+Is it worth trying a different type of plot altogether?
+
 ```{r}
+#| label: preschools-small-multiples
 ggplot(preschools,
        aes(y = Level_of_schooling)) +
   geom_bar() +
   facet_wrap(~Operational_directorate,
              labeller = label_wrap_gen()) +
   coord_cartesian(expand = c(left = FALSE)) +
-  theme_doe(base_size = 12)
+  theme_doe(base_size = 12, panel.border = element_rect())
 ```
 
+### Exercise - Getting away from colour alone
+
+It's your turn. Using the same `preschools` dataset, we want to investigate the relationship between school size and its ICSEA.
+
 ```{r}
+#| label: demo-preschool-colour
 ggplot(preschools,
-       aes(x = latest_year_enrolment_FTE,
-           y = ICSEA_value,
+       aes(x = ICSEA_value,
+           y = latest_year_enrolment_FTE,
            colour = Level_of_schooling)) +
-  geom_point(size = 2) +
+  geom_point() +
   theme_doe()
 ```
 
+There's plenty we can learn from this plot, but unfortunately it relies on the colour aesthetic alone for differentiation between school types.
+
+How could we improve it? Make your changes here:
+
 ```{r}
+#| label: exercise-preschool-colour
+#| exercise: preschool-colour
 ggplot(preschools,
-       aes(x = latest_year_enrolment_FTE,
-           y = ICSEA_value,
+       aes(x = ICSEA_value,
+           y = latest_year_enrolment_FTE,
+           colour = Level_of_schooling)) +
+  geom_point() +
+  theme_doe()
+```
+
+:::{.hint exercise="preschool-colour"}
+Check out the documentation for [`scale_shape()`](https://ggplot2.tidyverse.org/reference/scale_shape.html#details).
+:::
+
+::: {.solution exercise="preschool-colour"}
+```{r}
+#| label: exericse-preschool-colour-solution
+# This is how I tackled the problem - your solution might be better!
+ggplot(preschools,
+       aes(x = ICSEA_value,
+           y = latest_year_enrolment_FTE,
+           # Use both colour and shape to distinguish school type
            colour = Level_of_schooling,
            shape = Level_of_schooling)) +
+  # Make the points larger
   geom_point(size = 2) +
+  # Carefully choose a colour scale
+  scale_colour_manual(values = doe_colours("Primary School" = "blue-01",
+                                           "Central/Community School" = "red-02",
+                                           "Infants School" = "blue-02")) +
+  # Carefully choose a shape scale
   scale_shape_manual(values = c("Primary School" = "square",
                                 "Central/Community School" = "asterisk",
                                 "Infants School" = "plus")) +
+  # Format the x-axis so it uses commas
+  scale_x_continuous(labels = scales::label_comma()) +
   theme_doe()
 ```
+:::
 
-### Exercise: use high-contrast text annotations
+### Text contrast
 
-Sometimes your audience will ask for data labels or other text annotations. 
+Sometimes your stakeholders will ask for data labels or other text annotations^[An appropriate question when asked for data labels is "Would a table be clearer?"]. 
 
 ```{r}
+#| label: demo-lbote-topn
+# This is a bit silly, but we're going to plot the school with the highest
+# LBOTE proportion in each directorate:
 lbote_topn <- public_schools |>
   filter_out(is.na(LBOTE_pct)) |>
   slice_max(LBOTE_pct, n = 1, by = Operational_directorate, with_ties = FALSE) |>
   mutate(
-    school_label = paste0(School_name, ": ", LBOTE_pct, "% "),
-    school_label_fct = forcats::fct_reorder(school_label, LBOTE_pct))
+    school_pct_label = paste0(LBOTE_pct, "% "),
+    school_name_fct = forcats::fct_reorder(School_name, LBOTE_pct))
 
 ggplot(lbote_topn,
        aes(x = LBOTE_pct,
-           y = school_label_fct)) +
+           y = school_name_fct)) +
+  # Layers
   geom_col() +
-  geom_text(aes(label = school_label),
+  # Left-hand text (school name)
+    geom_text(aes(label = School_name),
+            x = 1,
+            hjust = "left",
+            size = 12 / .pt) +
+  # Right-hand text (LBOTE %)
+  geom_text(aes(label = school_pct_label),
             hjust = "right",
             size = 12 / .pt) +
+  # Add % suffix to x axis
   scale_x_continuous(labels = \(x) paste0(x, "%")) +
-  theme_doe() +
-  theme(axis.text.y = element_blank(),
-        axis.ticks.y = element_blank(),
-        panel.grid = element_blank()) +
-  labs(x = "Students with Language Background Other Than English (LBOTE)",
-       y = NULL)
+  # Add our theme, tweaked to remove the now-superfluous y-axis labels
+  theme_doe(
+    axis.text.y = element_blank(),
+    axis.ticks.y = element_blank(),
+    axis.title.y = element_blank(),
+    panel.grid = element_blank())
 ```
 `doestyle` provides some help with choosing contrasting colours for text:
 
