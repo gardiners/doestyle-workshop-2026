@@ -10,6 +10,7 @@ format:
     toc: true
     toc-expand: 3
     toc-location: left
+    link-external-newwindow: true
 bibliography: references.bib
 engine: knitr
 knitr:
@@ -30,7 +31,7 @@ This workshop has been developed and delivered on [Dharug](https://www.cityofpar
 
 ## Abstract
 
-A picture tells a thousand words - but it can be time-consuming to craft data visualisations that meet our accessibility obligations while remaining on-brand and visually appealing. This workshop for R users will guide participants in the construction of several data visualisations using `doestyle`, the department’s in-house R package for plot styling. We will explore workflows to improve the ease and speed at which data visualisations can be built into evaluation reporting, and how to tweak these workflow defaults to improve visual appeal.
+A picture tells a thousand words - but it can be time-consuming to craft data visualisations that meet our accessibility obligations while remaining on-brand and visually appealing. This workshop for R users will guide participants in the construction of several data visualisations using [`doestyle`](https://nsw-education.github.io/doestyle/), the department’s in-house R package for plot styling. We will explore workflows to improve the ease and speed at which data visualisations can be built into evaluation reporting, and how to tweak these workflow defaults to improve visual appeal.
 
 ## Learning intentions
 
@@ -74,7 +75,7 @@ theme_doe <- function(base_size = 16, base_family = "sans", ...) {
 }
 ```
 
-As you loaded this web page, the `doestyle` R package was installed for your use during the workshop. However, if you want to use `doestyle` for your own work in RStudio or Visual Studio Code, you'll need to install it on your own computer (but not today):
+As you loaded this web page, the [`doestyle`](https://nsw-education.github.io/doestyle/) R package was installed for your use during the workshop. However, if you want to use `doestyle` for your own work in RStudio or Visual Studio Code, you'll need to install it on your own computer (but not today):
 
 ```r
 install.packages('doestyle', repos = c('https://nsw-education.r-universe.dev',
